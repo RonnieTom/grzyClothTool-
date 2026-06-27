@@ -99,6 +99,8 @@ namespace grzyClothTool
                     {
                         ErrorLogHelper.LogError("Error during 3D preview initialization in MainWindow", ex);
                     }
+
+                    OnApplicationReady();
                 });
             }));
 
@@ -121,8 +123,34 @@ namespace grzyClothTool
             
             bool isDarkMode = Properties.Settings.Default.IsDarkMode;
             App.ChangeTheme(isDarkMode);
+        }
 
+        private void OnApplicationReady()
+        {
             CheckFirstRun();
+            ShowSupportPrompt();
+        }
+
+        private void ShowSupportPrompt()
+        {
+            if (!IsVisible)
+            {
+                return;
+            }
+
+            var prompt = new SupportPromptWindow
+            {
+                Owner = this
+            };
+
+            if (prompt.ShowDialog() == true)
+            {
+                var supportWindow = new SupportMeWindow
+                {
+                    Owner = this
+                };
+                supportWindow.ShowDialog();
+            }
         }
 
         private void OnAutoSaveProgress(double percentage)
@@ -220,6 +248,15 @@ namespace grzyClothTool
             p.StartInfo.UseShellExecute = true;
             p.StartInfo.FileName = e.Uri.AbsoluteUri;
             p.Start();
+        }
+
+        private void SupportMe_Click(object sender, RoutedEventArgs e)
+        {
+            var window = new SupportMeWindow
+            {
+                Owner = this
+            };
+            window.ShowDialog();
         }
 
         //this is needed so window can be clicked anywhere to unfocus textbox

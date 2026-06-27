@@ -9,5 +9,7 @@ public static class GlobalConstants
     public const string ASSETS_FOLDER_NAME = "project_assets";
     public static readonly Uri DISCORD_INVITE_URL = new("https://discord.gg/HCQutNhxWt");
     public static readonly Uri KOOK_INVITE_URL = new("https://kook.vip/XMaCDb");
+    public static readonly Uri CHINESE_SOURCE_URL = new("https://github.com/RonnieTom/grzyClothTool-/tree/main/中文源代码");
+    public static readonly Uri ENGLISH_SOURCE_URL = new("https://github.com/RonnieTom/grzyClothTool-/tree/main/英文源代码");
     public static readonly string GRZY_TOOLS_URL = "https://grzy.tools";
 }

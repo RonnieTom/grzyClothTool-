@@ -1,0 +1,23 @@
+<Window x:Class="grzyClothTool.Views.SupportMeWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="支持我"
+        Width="520"
+        MaxHeight="900"
+        SizeToContent="Height"
+        ResizeMode="CanResize"
+        Background="{DynamicResource Brush50}"
+        WindowStartupLocation="CenterOwner">
+    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="12">
+        <StackPanel>
+            <Image Source="pack://application:,,,/grzyClothTool;component/Resources/SupportMe/support1.jpg"
+                   Stretch="Uniform"
+                   Margin="0,0,0,12" />
+            <Image Source="pack://application:,,,/grzyClothTool;component/Resources/SupportMe/support2.jpg"
+                   Stretch="Uniform" />
+        </StackPanel>
+    </ScrollViewer>
+</Window>
