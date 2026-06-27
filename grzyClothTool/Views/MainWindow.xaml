@@ -1,0 +1,129 @@
+﻿<Window x:Class="grzyClothTool.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:helpers="clr-namespace:grzyClothTool.Helpers"
+        xmlns:icons="clr-namespace:Material.Icons.WPF;assembly=Material.Icons.WPF"
+        xmlns:scm="clr-namespace:System.ComponentModel;assembly=WindowsBase"
+        xmlns:constants="clr-namespace:grzyClothTool.Constants"
+        xmlns:controls="clr-namespace:grzyClothTool.Controls"
+        xmlns:ad="https://github.com/Dirkster99/AvalonDock"
+        xmlns:themes="clr-namespace:AvalonDock.Themes;assembly=AvalonDock.Themes.VS2013"
+        d:DataContext="{d:DesignInstance Type=helpers:NavigationHelper, IsDesignTimeCreatable=True}"
+        mc:Ignorable="d"
+        Background="{DynamicResource Brush50}"
+        Title="grzyClothTool - RONNIE_T 汉化" Height="900" Width="1400" MinWidth="1200" MinHeight="800"
+        MouseDown="Window_MouseDown"
+        Closed="Window_Closed"
+        Closing="Window_Closing"
+    >
+
+    <DockPanel>
+        <Menu DockPanel.Dock="Top">
+            <Menu.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <DockPanel HorizontalAlignment="Stretch" />
+                </ItemsPanelTemplate>
+            </Menu.ItemsPanel>
+
+
+            <MenuItem Header="_项目">
+                <MenuItem Header="_返回主界面" Click="HomeScreen_Click" />
+                <Separator />
+                <MenuItem Header="_保存" Click="Save_Click" InputGestureText="Ctrl+S" />
+                <Separator />
+                <MenuItem Header="_打开插件" Click="OpenAddon_Click" 
+                          ToolTip="打开插件文件（替换当前项目）" />
+                <MenuItem Header="_添加插件" Click="AddAddon_Click" 
+                          ToolTip="添加插件文件到当前项目" />
+                <Separator />
+                <MenuItem Header="_导入项目" Click="ImportProject_Click" />
+                <MenuItem Header="_导出项目" Click="ExportProject_Click" />
+            </MenuItem>
+            <MenuItem Header="_设置" Tag="Settings" Click="Navigation_Click" />
+            <MenuItem Header="_视图" Tag="View">
+                <MenuItem Header="_日志" Tag="Logs" Click="LogsOpen_Click" />
+                <MenuItem Header="_重复项检查器" Tag="DuplicateInspector" Click="DuplicateInspector_Click" />
+            </MenuItem>
+
+            <MenuItem Header="" IsEnabled="False">
+                <MenuItem.Template>
+                    <ControlTemplate TargetType="MenuItem">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                            <TextBlock Padding="5,0" Text="{Binding AppVersion, RelativeSource={RelativeSource AncestorType=Window}}" />
+                        </StackPanel>
+                    </ControlTemplate>
+                </MenuItem.Template>
+            </MenuItem>
+        </Menu>
+
+        <StatusBar Background="{DynamicResource Brush100}" DockPanel.Dock="Bottom">
+            <StatusBar.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="auto" />
+                            <ColumnDefinition Width="auto" />
+                            <ColumnDefinition Width="auto" />
+                        </Grid.ColumnDefinitions>
+                    </Grid>
+                </ItemsPanelTemplate>
+            </StatusBar.ItemsPanel>
+            <StatusBarItem Grid.Column="0" MouseDoubleClick="StatusBarItem_MouseDoubleClick">
+                <StackPanel Orientation="Horizontal">
+                    <controls:AutoSaveIndicator x:Name="AutoSaveIndicator" Visibility="Collapsed" Margin="0,0,5,0" />
+                    <icons:MaterialIcon x:Name="logBarIcon" Visibility="Hidden" Width="24" HorizontalAlignment="Left" Foreground="{DynamicResource Brush900}" />
+                    <TextBlock Name="logBar" Foreground="{DynamicResource Brush900}" FontSize="12" Height="18" VerticalAlignment="Center" Padding="8,0,0,0"></TextBlock>
+                </StackPanel>
+            </StatusBarItem>
+            <StatusBarItem Grid.Column="1" HorizontalAlignment="Right" Padding="5,0,10,2">
+                <Hyperlink NavigateUri="{x:Static constants:GlobalConstants.DISCORD_INVITE_URL}" RequestNavigate="Hyperlink_RequestNavigate">Discord</Hyperlink>
+            </StatusBarItem>
+            <StatusBarItem Grid.Column="2" HorizontalAlignment="Right" Padding="5,0,10,2">
+                <Hyperlink NavigateUri="https://github.com/grzybeek/grzyClothTool" RequestNavigate="Hyperlink_RequestNavigate">源代码</Hyperlink>
+            </StatusBarItem>
+            <StatusBarItem Grid.Column="3" HorizontalAlignment="Right" Padding="5,0,10,2">
+                <Hyperlink NavigateUri="https://patreon.com/grzybeek" RequestNavigate="Hyperlink_RequestNavigate">支持我！</Hyperlink>
+            </StatusBarItem>
+
+            <StatusBarItem Grid.ColumnSpan="4" Padding="0" VerticalAlignment="Bottom">
+                <ProgressBar x:Name="progressBar" BorderBrush="Transparent" Height="5" Visibility="Hidden" IsIndeterminate="True" Width="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=StatusBarItem}}" />
+            </StatusBarItem>
+        </StatusBar>
+
+        <ad:DockingManager x:Name="DockManager" AllowMixedOrientation="True">
+            <ad:LayoutRoot>
+                <ad:LayoutPanel Orientation="Horizontal">
+
+                    <ad:LayoutDocumentPane DockWidth="*" ShowHeader="False">
+                        <ad:LayoutDocument
+                            ContentId="MainContent"
+                            Title="">
+
+                            <ContentControl x:Name="MainWindowContentControl" Content="{Binding CurrentPage}" />
+                        </ad:LayoutDocument>
+                    </ad:LayoutDocumentPane>
+
+                    <ad:LayoutAnchorablePane DockWidth="500">
+                        <ad:LayoutAnchorable
+                            x:Name="PreviewAnchorable"
+                            ContentId="PreviewAnchorable"
+                            Title="3D 预览"
+                            CanClose="True"
+                            CanHide="True"
+                            CanFloat="True"
+                            AutoHideWidth="500"
+                            FloatingWidth="800"
+                            FloatingHeight="600"
+                            IsVisible="False">
+
+                            <controls:PreviewWindowHost x:Name="PreviewHost" />
+                        </ad:LayoutAnchorable>
+                    </ad:LayoutAnchorablePane>
+                </ad:LayoutPanel>
+            </ad:LayoutRoot>
+        </ad:DockingManager>
+    </DockPanel>
+</Window>
