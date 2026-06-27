@@ -362,6 +362,11 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 
+# 本地保留但不提交的目录
+英文源代码/
+支持我/
+中文源代码/
+
 # grzyClothTool 本地构建输出（不要上传）
 output/
 output-single/

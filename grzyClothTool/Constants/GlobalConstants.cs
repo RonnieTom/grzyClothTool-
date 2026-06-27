@@ -1,0 +1,15 @@
+using System;
+
+namespace grzyClothTool.Constants;
+
+public static class GlobalConstants
+{
+    public const int MAX_DRAWABLES_IN_ADDON = 128; //todo: somewhere in the future, this should depend on a resource type (fivem has limit of 128, but sp and ragemp have 255 I believe)
+    public const int MAX_DRAWABLE_TEXTURES = 26;
+    public const string ASSETS_FOLDER_NAME = "project_assets";
+    public static readonly Uri DISCORD_INVITE_URL = new("https://discord.gg/HCQutNhxWt");
+    public static readonly Uri KOOK_INVITE_URL = new("https://kook.vip/XMaCDb");
+    public static readonly Uri CHINESE_SOURCE_URL = new("https://github.com/RonnieTom/grzyClothTool-");
+    public static readonly Uri ENGLISH_SOURCE_URL = new("https://github.com/grzybeek/grzyClothTool");
+    public static readonly string GRZY_TOOLS_URL = "https://grzy.tools";
+}

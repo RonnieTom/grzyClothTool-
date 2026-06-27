@@ -5,14 +5,7 @@
 > **汉化说明：** 本仓库为 grzyClothTool 简体中文汉化版本，由 **RONNIE_T** 翻译维护。  
 > 原项目作者：[grzybeek](https://github.com/grzybeek/grzyClothTool)
 
-## 源代码目录
-
-| 文件夹 | 说明 |
-|--------|------|
-| [中文源代码](./中文源代码/) | RONNIE_T 汉化版源码（界面为简体中文） |
-| [英文源代码](./英文源代码/) | 原版 v1.2.1 英文源码（来自 [grzybeek/grzyClothTool](https://github.com/grzybeek/grzyClothTool)） |
-
-编译汉化版请进入 `中文源代码` 目录，打开 `grzyClothTool.sln` 或使用 `dotnet publish`。
+编译汉化版请打开 `grzyClothTool.sln` 或使用 `dotnet publish`。
 
 <p align="center">
   <img src="https://github.com/grzybeek/grzyClothTool/assets/40837847/30c72912-8828-4fa8-a84f-6f27a1f8eb5f">
