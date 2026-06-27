@@ -18,6 +18,7 @@ using Sentry;
 using System.Windows.Threading;
 using Sentry.Profiling;
 using grzyClothTool.Constants;
+using grzyClothTool.Helpers;
 
 namespace grzyClothTool
 {
@@ -61,6 +62,8 @@ namespace grzyClothTool
 
         public App()
         {
+            UserConfigHelper.EnsureCodeWalkerSettingsLoadable();
+
             MaterialIconDataProvider.Instance = new CustomIconProvider(); // use custom icons
             httpClient.DefaultRequestHeaders.Add("X-GrzyClothTool", "true");
 
@@ -230,6 +233,10 @@ namespace grzyClothTool
             var path = Path.Combine(AppContext.BaseDirectory, $"error-{date}.log");
             File.WriteAllText(path, e.Exception.ToString());
             SentrySdk.CaptureException(e.Exception);
+
+            splashScreen?.Shutdown();
+            Show($"启动失败：{e.Exception.Message}\n\n详细日志已保存至：\n{path}", "错误", CustomMessageBoxButtons.OKOnly);
+            Shutdown();
 
             e.Handled = true;
         }
