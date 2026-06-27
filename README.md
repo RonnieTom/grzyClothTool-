@@ -1,9 +1,18 @@
-# grzyClothTool（开发中）— RONNIE_T 汉化版
+# grzyClothTool — RONNIE_T 汉化版
 
 **_请注意，本工具仍处于「开发中」状态，你可能会遇到 Bug、功能缺失或体验问题。_**
 
 > **汉化说明：** 本仓库为 grzyClothTool 简体中文汉化版本，由 **RONNIE_T** 翻译维护。  
 > 原项目作者：[grzybeek](https://github.com/grzybeek/grzyClothTool)
+
+## 源代码目录
+
+| 文件夹 | 说明 |
+|--------|------|
+| [中文源代码](./中文源代码/) | RONNIE_T 汉化版源码（界面为简体中文） |
+| [英文源代码](./英文源代码/) | 原版 v1.2.1 英文源码（来自 [grzybeek/grzyClothTool](https://github.com/grzybeek/grzyClothTool)） |
+
+编译汉化版请进入 `中文源代码` 目录，打开 `grzyClothTool.sln` 或使用 `dotnet publish`。
 
 <p align="center">
   <img src="https://github.com/grzybeek/grzyClothTool/assets/40837847/30c72912-8828-4fa8-a84f-6f27a1f8eb5f">
@@ -37,6 +46,7 @@
 
 - **RONNIE_T** — 简体中文界面翻译
 - QQ：3547376520
+- KOOK：[https://kook.vip/XMaCDb](https://kook.vip/XMaCDb)
 
 # 想表示感谢？
 
@@ -49,7 +59,7 @@
 
 # 需要帮助？
 
-- 加入 [Discord](https://discord.gg/HCQutNhxWt)。由于工具仍在开发中，目前技术支持主要面向在 [ko-fi](https://ko-fi.com/grzybeek) 上支持作者的用户。
+- 加入 [KOOK](https://kook.vip/XMaCDb) 或 [Discord](https://discord.gg/HCQutNhxWt)
 
 # 截图
 

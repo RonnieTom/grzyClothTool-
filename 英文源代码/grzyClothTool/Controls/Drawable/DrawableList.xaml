@@ -1,0 +1,726 @@
+﻿<UserControl x:Class="grzyClothTool.Controls.DrawableList"
+         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+         xmlns:icons="clr-namespace:Material.Icons.WPF;assembly=Material.Icons.WPF"
+         xmlns:models="clr-namespace:grzyClothTool.Models"
+         xmlns:helpers="clr-namespace:grzyClothTool.Helpers"
+         xmlns:converters="clr-namespace:grzyClothTool.Converters"
+         xmlns:local="clr-namespace:grzyClothTool.Controls"
+         d:DataContext="{d:DesignInstance Type=models:AddonManagerDesign, IsDesignTimeCreatable=True}"
+         x:Name="MyDrawableList"
+         mc:Ignorable="d">
+
+<UserControl.Resources>
+<local:GroupExpandedStateConverter x:Key="GroupExpandedStateConverter" />
+    <converters:HexColorToBrushConverter x:Key="HexColorToBrushConverter" />
+
+        <ContextMenu x:Key="SingleSelectionContextMenu">
+            <MenuItem Header="Show in duplicate inspector" Click="ShowDuplicateInspector_Click" x:Name="ShowDuplicateInspectorMenuItem">
+                <MenuItem.Style>
+                    <Style TargetType="MenuItem">
+                        <Setter Property="Visibility" Value="Collapsed" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding PlacementTarget.SelectedItem.DuplicateInfo.IsDuplicate, RelativeSource={RelativeSource AncestorType=ContextMenu}}" Value="True">
+                                <Setter Property="Visibility" Value="Visible" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </MenuItem.Style>
+            </MenuItem>
+            <Separator x:Name="DuplicateSeparator">
+                <Separator.Style>
+                    <Style TargetType="Separator">
+                        <Setter Property="Visibility" Value="Collapsed" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding PlacementTarget.SelectedItem.DuplicateInfo.IsDuplicate, RelativeSource={RelativeSource AncestorType=ContextMenu}}" Value="True">
+                                <Setter Property="Visibility" Value="Visible" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Separator.Style>
+            </Separator>
+            <MenuItem Header="Delete" Click="DeleteDrawable_Click" />
+            <MenuItem Header="Replace" Click="ReplaceDrawable_Click" />
+            <MenuItem Header="Duplicate to opposite gender" Click="DuplicateToOppositeGender_Click" />
+            <MenuItem Header="Move to another addon" ItemsSource="{Binding AddonManager.MoveMenuItems, RelativeSource={RelativeSource AncestorType=Window}}">
+                <MenuItem.ItemContainerStyle>
+                    <Style TargetType="MenuItem">
+                        <Setter Property="Header" Value="{Binding Header}" />
+                        <Setter Property="IsEnabled" Value="{Binding IsEnabled}" />
+                        <EventSetter Event="Click" Handler="MoveMenuItem_Click" />
+                    </Style>
+                </MenuItem.ItemContainerStyle>
+            </MenuItem>
+            <MenuItem Header="Open file location" Click="OpenFileLocation_Click" />
+            <MenuItem Header="Export as YDD" Click="ExportDrawable_Click" />
+            <MenuItem Header="Export as YDD with textures" Click="ExportDrawable_Click" Tag="YTD" />
+            <MenuItem Header="Export only textures as DDS" Click="ExportDrawable_Click" Tag="DDS" />
+            <MenuItem Header="Export only textures as PNG" Click="ExportDrawable_Click" Tag="PNG" />
+        </ContextMenu>
+        <ContextMenu x:Key="MultipleSelectionContextMenu">
+            <MenuItem Header="Delete" Click="DeleteDrawable_Click" />
+            <MenuItem Header="Move" ItemsSource="{Binding AddonManager.MoveMenuItems, RelativeSource={RelativeSource AncestorType=Window}}">
+                <MenuItem.ItemContainerStyle>
+                    <Style TargetType="MenuItem">
+                        <Setter Property="Header" Value="{Binding Header}" />
+                        <Setter Property="IsEnabled" Value="{Binding IsEnabled}" />
+                        <EventSetter Event="Click" Handler="MoveMenuItem_Click" />
+                    </Style>
+                </MenuItem.ItemContainerStyle>
+            </MenuItem>
+            <MenuItem Header="Export as YDD" Click="ExportDrawable_Click" />
+            <MenuItem Header="Export as YDD with textures" Click="ExportDrawable_Click" Tag="YTD" />
+            <MenuItem Header="Export only textures as DDS" Click="ExportDrawable_Click" Tag="DDS" />
+            <MenuItem Header="Export only textures as PNG" Click="ExportDrawable_Click" Tag="PNG" />
+        </ContextMenu>
+
+        <Style TargetType="ListBox" x:Key="ListBoxStyleWithContextMenu">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding DataContext.IsMultipleDrawablesSelected, ElementName=MyDrawableList}" Value="True">
+                    <Setter Property="ContextMenu" Value="{StaticResource MultipleSelectionContextMenu}" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding DataContext.IsMultipleDrawablesSelected, ElementName=MyDrawableList}" Value="False">
+                    <Setter Property="ContextMenu" Value="{StaticResource SingleSelectionContextMenu}" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style TargetType="ListBoxItem" x:Key="ListBoxItemTemplate">
+            <Setter Property="AllowDrop" Value="True" />
+            <Setter Property="SnapsToDevicePixels" Value="True" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Margin" Value="0,0,6,2" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            
+                            <Grid Grid.Column="0" x:Name="GroupIndentArea" Width="0">
+                                <Border x:Name="GroupConnector"
+                                       Width="2"
+                                       Background="{DynamicResource Brush300}"
+                                       HorizontalAlignment="Right"
+                                       Margin="0,0,10,0"
+                                       Opacity="0.4"
+                                       Visibility="Collapsed" />
+                                
+                                <Border x:Name="GroupBranch"
+                                       Height="2"
+                                       Width="8"
+                                       Background="{DynamicResource Brush300}"
+                                       HorizontalAlignment="Right"
+                                       VerticalAlignment="Center"
+                                       Margin="0,0,2,0"
+                                       Opacity="0.4"
+                                       Visibility="Collapsed" />
+                            </Grid>
+                            
+                            <Grid Grid.Column="1">
+                                <Border x:Name="ShadowBorder"
+                                        Background="{DynamicResource Brush300}"
+                                        CornerRadius="5"
+                                        Margin="1,1,1,2"
+                                        Opacity="0.12" />
+                                <Border x:Name="Border" 
+                                        Background="{DynamicResource Brush50}" 
+                                        BorderBrush="{DynamicResource Brush250}" 
+                                        BorderThickness="1" 
+                                        CornerRadius="5"
+                                        Padding="6,5"
+                                        SnapsToDevicePixels="True"
+                                        UseLayoutRounding="True">
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="3"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                    
+                                    <Rectangle Grid.Column="0" 
+                                              Grid.RowSpan="2"
+                                              x:Name="GenderBar" 
+                                              Fill="#64b5f6"
+                                              Width="3.5"
+                                              RadiusX="2"
+                                              RadiusY="2"
+                                              Margin="-7,-5,4,-5"
+                                              VerticalAlignment="Stretch" />
+                                    
+                                    <StackPanel Grid.Column="1" 
+                                               Grid.Row="0"
+                                               Orientation="Horizontal" 
+                                               VerticalAlignment="Center"
+                                               Margin="0,0,5,0">
+                                        
+                                        <icons:MaterialIcon x:Name="LockIcon" 
+                                                           Kind="Lock" 
+                                                           Width="13" 
+                                                           Height="13"
+                                                           Foreground="{DynamicResource Brush600}"
+                                                           Margin="0,0,3,0"
+                                                           Visibility="Collapsed"
+                                                           ToolTipService.InitialShowDelay="0" />
+                                        
+                                        <icons:MaterialIcon x:Name="LoadingIcon" 
+                                                           Kind="ProgressHelper" 
+                                                           Width="13" 
+                                                           Height="13"
+                                                           Foreground="{DynamicResource Brush600}"
+                                                           Margin="0,0,3,0"
+                                                           Visibility="Collapsed" />
+                                        
+                                        <icons:MaterialIcon x:Name="WarningIcon" 
+                                                           Kind="AlertCircle" 
+                                                           Width="13" 
+                                                           Height="13"
+                                                           Foreground="#f59e0b"
+                                                           Margin="0,0,3,0"
+                                                           Visibility="Collapsed"
+                                                           ToolTipService.InitialShowDelay="0" />
+                                    </StackPanel>
+                                    
+                                        <StackPanel Grid.Column="2" 
+                                                  Grid.Row="0"
+                                                  Orientation="Horizontal"
+                                                  VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding Name, StringFormat='[{0}]'}"
+                                                      FontSize="10"
+                                                      FontFamily="Consolas"
+                                                      Foreground="{DynamicResource Brush500}"
+                                                      VerticalAlignment="Center"
+                                                      Margin="0,0,4,0"
+                                                      Visibility="{Binding HasDisplayName, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                            <TextBlock x:Name="NameText"
+                                                      FontSize="11"
+                                                      FontWeight="Medium"
+                                                      Foreground="{DynamicResource Brush900}"
+                                                      VerticalAlignment="Center"
+                                                      TextTrimming="CharacterEllipsis">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Text" Value="{Binding Name}" />
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding HasDisplayName}" Value="True">
+                                                                <Setter Property="Text" Value="{Binding DisplayName}" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                        </StackPanel>
+                                    
+                                    <StackPanel Grid.Column="3" 
+                                               Grid.Row="0"
+                                               Orientation="Horizontal" 
+                                               VerticalAlignment="Center"
+                                               Margin="4,0,0,0">
+                                        
+                                        <Border x:Name="ReservedBadge"
+                                               Background="#fef3c7"
+                                               CornerRadius="2"
+                                               Padding="4,1"
+                                               Margin="0,0,2,0"
+                                               Visibility="Collapsed"
+                                               ToolTip="Reserved"
+                                               ToolTipService.InitialShowDelay="0">
+                                            <TextBlock Text="RSV" 
+                                                      FontSize="8" 
+                                                      FontWeight="Bold"
+                                                      Foreground="#f59e0b"
+                                                      VerticalAlignment="Center" />
+                                        </Border>
+                                        
+                                        <Border x:Name="NewBadge"
+                                               Background="#dbeafe"
+                                               CornerRadius="2"
+                                               Padding="4,1"
+                                               Margin="0,0,2,0"
+                                               Visibility="Collapsed"
+                                               ToolTip="New"
+                                               ToolTipService.InitialShowDelay="0">
+                                            <TextBlock Text="NEW" 
+                                                      FontSize="8" 
+                                                      FontWeight="Bold"
+                                                      Foreground="#2563eb"
+                                                      VerticalAlignment="Center" />
+                                        </Border>
+                                        
+                                        <Border x:Name="DuplicateIndicator"
+                                               Background="{Binding DuplicateInfo.DuplicateColor, Converter={StaticResource HexColorToBrushConverter}}"
+                                               BorderBrush="{Binding DuplicateInfo.DuplicateColor, Converter={StaticResource HexColorToBrushConverter}}"
+                                               CornerRadius="2"
+                                               Padding="4,1"
+                                               Margin="0,0,2,0"
+                                               Visibility="Collapsed"
+                                               ToolTipService.InitialShowDelay="0">
+                                            <Border.ToolTip>
+                                                <ToolTip>
+                                                    <TextBlock Text="{Binding DuplicateInfo.DuplicateTooltip}" />
+                                                </ToolTip>
+                                            </Border.ToolTip>
+                                            <TextBlock FontSize="8"
+                                                      FontWeight="Bold"
+                                                      Foreground="White">
+                                                <Run Text="DUP" />
+                                                <Run Text="{Binding DuplicateInfo.DuplicateCount, Mode=OneWay}" />
+                                            </TextBlock>
+                                        </Border>
+
+                                        <Ellipse x:Name="SelectionDot"
+                                            Width="6"
+                                            Height="6"
+                                            Fill="#10b981"
+                                            Margin="2,0,0,0"
+                                            Visibility="Collapsed"
+                                            ToolTip="Selected"
+                                            ToolTipService.InitialShowDelay="0" />
+                                        </StackPanel>
+                                    
+                                    <StackPanel Grid.Column="1" 
+                                               Grid.Row="1"
+                                               Grid.ColumnSpan="3"
+                                               Orientation="Horizontal" 
+                                               Margin="0,5,0,0">
+                                        
+                                        <ItemsControl x:Name="TagsDisplay"
+                                                     ItemsSource="{Binding VisibleTags}"
+                                                     Margin="0,0,3,0"
+                                                     Visibility="Collapsed">
+                                            <ItemsControl.ItemsPanel>
+                                                <ItemsPanelTemplate>
+                                                    <StackPanel Orientation="Horizontal" />
+                                                </ItemsPanelTemplate>
+                                            </ItemsControl.ItemsPanel>
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Border Background="{DynamicResource Brush200}"
+                                                            BorderBrush="{DynamicResource Brush400}"
+                                                            BorderThickness="1"
+                                                            CornerRadius="3"
+                                                            Padding="5,2"
+                                                            Margin="0,0,3,0">
+                                                        <TextBlock Text="{Binding Converter={StaticResource UpperCaseConverter}}" 
+                                                                  FontSize="9" 
+                                                                  FontWeight="SemiBold"
+                                                                  Foreground="{DynamicResource Brush800}" />
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                        
+                                        <Border x:Name="MoreTagsIndicator"
+                                                Background="{DynamicResource Brush200}"
+                                                BorderBrush="{DynamicResource Brush400}"
+                                                BorderThickness="1"
+                                                CornerRadius="3"
+                                                Padding="5,2"
+                                                Margin="0,0,3,0"
+                                                Visibility="Collapsed"
+                                                ToolTipService.InitialShowDelay="200">
+                                            <Border.ToolTip>
+                                                <ToolTip>
+                                                    <ItemsControl ItemsSource="{Binding Tags}">
+                                                        <ItemsControl.ItemTemplate>
+                                                            <DataTemplate>
+                                                                <TextBlock Text="{Binding Converter={StaticResource UpperCaseConverter}}"
+                                                                           FontSize="10"
+                                                                           Margin="2"/>
+                                                            </DataTemplate>
+                                                        </ItemsControl.ItemTemplate>
+                                                    </ItemsControl>
+                                                </ToolTip>
+                                            </Border.ToolTip>
+                                            <TextBlock Text="{Binding HiddenTagsCount, StringFormat='+{0}'}"
+                                                       FontSize="9"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="{DynamicResource Brush800}"/>
+                                        </Border>
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                            </Grid>
+                        </Grid>
+                        
+                        <ControlTemplate.Triggers>
+                            <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=GroupItem}, Converter={x:Static local:GroupItemToBooleanConverter.Instance}}" Value="True">
+                                <Setter TargetName="GroupIndentArea" Property="Width" Value="20" />
+                                <Setter TargetName="GroupConnector" Property="Visibility" Value="Visible" />
+                                <Setter TargetName="GroupBranch" Property="Visibility" Value="Visible" />
+                                <Setter TargetName="Border" Property="Background" Value="{DynamicResource Brush75}" />
+                                <Setter TargetName="Border" Property="CornerRadius" Value="3" />
+                                <Setter TargetName="NameText" Property="FontSize" Value="11" />
+                                <Setter TargetName="ShadowBorder" Property="Opacity" Value="0.08" />
+                            </DataTrigger>
+                            
+                            <DataTrigger Binding="{Binding SexName}" Value="female">
+                                <Setter Property="Fill" Value="#f472b6" TargetName="GenderBar"/>
+                            </DataTrigger>
+                            
+                            <DataTrigger Binding="{Binding IsEncrypted}" Value="True">
+                                <Setter Property="Visibility" Value="Visible" TargetName="LockIcon" />
+                                <Setter Property="ToolTip" Value="Encrypted - Cannot preview" TargetName="LockIcon" />
+                            </DataTrigger>
+                            
+                            <DataTrigger Binding="{Binding IsLoading}" Value="True">
+                                <Setter Property="Visibility" Value="Visible" TargetName="LoadingIcon" />
+                            </DataTrigger>
+                            
+                            <DataTrigger Binding="{Binding Details.IsWarning}" Value="True">
+                                <Setter Property="Visibility" Value="Visible" TargetName="WarningIcon" />
+                                <Setter Property="ToolTip" Value="{Binding Details.Tooltip}" TargetName="WarningIcon" />
+                            </DataTrigger>
+                            
+                            <DataTrigger Binding="{Binding IsReserved}" Value="True">
+                                <Setter Property="Visibility" Value="Visible" TargetName="ReservedBadge" />
+                            </DataTrigger>
+                            
+                            <MultiDataTrigger>
+                                <MultiDataTrigger.Conditions>
+                                    <Condition Binding="{Binding Path=Instance.MarkNewDrawables, Source={x:Static helpers:SettingsHelper.Instance}}" Value="True"/>
+                                    <Condition Binding="{Binding IsNew}" Value="True"/>
+                                </MultiDataTrigger.Conditions>
+                                <Setter Property="Visibility" Value="Visible" TargetName="NewBadge" />
+                            </MultiDataTrigger>
+                            
+                            <!-- Selected -->
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter Property="Background" Value="{DynamicResource Brush150}" TargetName="Border"/>
+                                <Setter Property="BorderBrush" Value="#3b82f6" TargetName="Border"/>
+                                <Setter Property="BorderThickness" Value="1" TargetName="Border"/>
+                                <Setter Property="FontWeight" Value="SemiBold" TargetName="NameText"/>
+                                <Setter Property="Visibility" Value="Visible" TargetName="SelectionDot" />
+                                <Setter Property="Opacity" Value="0.25" TargetName="ShadowBorder"/>
+                            </Trigger>
+                            
+                            <!-- Hover -->
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="{DynamicResource Brush100}" TargetName="Border"/>
+                                <Setter Property="BorderBrush" Value="{DynamicResource Brush350}" TargetName="Border"/>
+                                <Setter Property="Opacity" Value="0.3" TargetName="ShadowBorder"/>
+                            </Trigger>
+                            
+                            <!-- Hover + Selected -->
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsSelected" Value="True"/>
+                                    <Condition Property="IsMouseOver" Value="True"/>
+                                </MultiTrigger.Conditions>
+                                <Setter Property="Background" Value="{DynamicResource Brush150}" TargetName="Border"/>
+                                <Setter Property="BorderBrush" Value="#60a5fa" TargetName="Border"/>
+                                <Setter Property="Opacity" Value="0.35" TargetName="ShadowBorder"/>
+                            </MultiTrigger>
+                            
+                            <!-- Show tags section when HasTags is true -->
+                            <DataTrigger Binding="{Binding HasTags}" Value="True">
+                                <Setter Property="Visibility" Value="Visible" TargetName="TagsDisplay"/>
+                            </DataTrigger>
+                            
+                            <!-- Show more tags indicator when there are hidden tags -->
+                            <DataTrigger Binding="{Binding HiddenTagsCount, Converter={StaticResource IntToVisibilityConverter}}" Value="Visible">
+                                <Setter Property="Visibility" Value="Visible" TargetName="MoreTagsIndicator"/>
+                            </DataTrigger>
+                            
+                            <!-- duplicate indicator -->
+                            <DataTrigger Binding="{Binding DuplicateInfo.IsDuplicate}" Value="True">
+                                <Setter Property="Visibility" Value="Visible" TargetName="DuplicateIndicator"/>
+                            </DataTrigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
+    <AdornerDecorator>
+        <ListBox 
+            Background="Transparent"
+            Foreground="{DynamicResource Brush950}"
+            x:Name="MyListBox" 
+            SelectionMode="Extended"
+            SelectionChanged="ListBox_SelectionChanged"
+            HorizontalContentAlignment="Stretch" 
+            ItemContainerStyle="{StaticResource ListBoxItemTemplate}" 
+            ItemsSource="{Binding ItemsSource, ElementName=MyDrawableList, UpdateSourceTrigger=PropertyChanged}"
+            d:ItemsSource="{Binding Drawables}"
+            BorderThickness="0" 
+            d:SelectedIndex="1"
+            d:Width="300"
+            PreviewKeyDown="DrawableList_PreviewKeyDown"
+            Style="{StaticResource ListBoxStyleWithContextMenu}"
+            AllowDrop="True"
+            MouseDoubleClick="MyListBox_MouseDoubleClick"
+            PreviewMouseLeftButtonDown="MyListBox_PreviewMouseLeftButtonDown"
+            PreviewMouseMove="MyListBox_PreviewMouseMove"
+            Drop="MyListBox_Drop"
+            DragOver="MyListBox_DragOver"
+            ScrollViewer.CanContentScroll="True"
+            ScrollViewer.IsDeferredScrollingEnabled="False"
+            SnapsToDevicePixels="True"
+            UseLayoutRounding="True"
+            VirtualizingPanel.IsVirtualizing="True"
+            VirtualizingPanel.VirtualizationMode="Recycling"
+            VirtualizingPanel.IsVirtualizingWhenGrouping="True"
+            VirtualizingPanel.CacheLength="20,20"
+            VirtualizingPanel.CacheLengthUnit="Item"
+            VirtualizingPanel.ScrollUnit="Pixel">
+            
+            <ListBox.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <VirtualizingStackPanel 
+                        IsVirtualizing="True"
+                        VirtualizationMode="Recycling"
+                        CacheLength="20,20"
+                        CacheLengthUnit="Item"
+                        ScrollUnit="Pixel" />
+                </ItemsPanelTemplate>
+            </ListBox.ItemsPanel>
+            
+            <ListBox.GroupStyle>
+                <GroupStyle>
+                    <GroupStyle.ContainerStyle>
+                        <Style TargetType="GroupItem">
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="GroupItem">
+                                        <StackPanel>
+                                            <Expander Margin="0,5,0,0" x:Name="GroupExpander">
+                                                <Expander.IsExpanded>
+                                                    <MultiBinding Converter="{StaticResource GroupExpandedStateConverter}" Mode="OneWay">
+                                                        <Binding Path="Name" />
+                                                        <Binding ElementName="MyDrawableList" />
+                                                    </MultiBinding>
+                                                </Expander.IsExpanded>
+                                                <Expander.Style>
+                                                    <Style TargetType="Expander">
+                                                        <Setter Property="Visibility" Value="Visible" />
+                                                        <Setter Property="Template">
+                                                            <Setter.Value>
+                                                                <ControlTemplate TargetType="Expander">
+                                                                    <DockPanel>
+                                                                        <ToggleButton x:Name="ExpanderToggle" 
+                                                                                    DockPanel.Dock="Top"
+                                                                                    IsChecked="{Binding Path=IsExpanded, RelativeSource={RelativeSource TemplatedParent}}"
+                                                                                    Background="Transparent"
+                                                                                    BorderThickness="0"
+                                                                                    Cursor="Hand">
+                                                                            <ToggleButton.Template>
+                                                                                <ControlTemplate TargetType="ToggleButton">
+                                                                                    <ContentPresenter Content="{Binding Header, RelativeSource={RelativeSource AncestorType=Expander}}"
+                                                                                                    RecognizesAccessKey="True"/>
+                                                                                </ControlTemplate>
+                                                                            </ToggleButton.Template>
+                                                                        </ToggleButton>
+                                                                        
+                                                                        <ContentPresenter x:Name="ExpanderContent"
+                                                                                        DockPanel.Dock="Top"
+                                                                                        Visibility="Collapsed"/>
+                                                                    </DockPanel>
+                                                                    <ControlTemplate.Triggers>
+                                                                        <Trigger Property="IsExpanded" Value="True">
+                                                                            <Setter TargetName="ExpanderContent" Property="Visibility" Value="Visible"/>
+                                                                        </Trigger>
+                                                                    </ControlTemplate.Triggers>
+                                                                </ControlTemplate>
+                                                            </Setter.Value>
+                                                        </Setter>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Name}" Value="{x:Null}">
+                                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Expander.Style>
+                                                <Expander.Header>
+                                                    <Grid x:Name="HeaderWrapper" Background="Transparent" HorizontalAlignment="Stretch">
+                                                        <Border x:Name="GroupShadow"
+                                                                Background="{DynamicResource Brush300}"
+                                                                CornerRadius="4"
+                                                                Margin="1,1,7,3"
+                                                                Opacity="0.12" />
+                                                        
+                                                        <Border x:Name="GroupHeaderBorder"
+                                                                Background="{DynamicResource Brush100}" 
+                                                                BorderBrush="{DynamicResource Brush300}" 
+                                                                BorderThickness="1" 
+                                                                CornerRadius="4" 
+                                                                Padding="8,6"
+                                                                Margin="0,0,6,2"
+                                                                SnapsToDevicePixels="True"
+                                                                AllowDrop="True"
+                                                                HorizontalAlignment="Stretch">
+                                                            <Border.ContextMenu>
+                                                                <ContextMenu Visibility="Collapsed" />
+                                                            </Border.ContextMenu>
+
+                                                            <Grid>
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="Auto"/>
+                                                                    <ColumnDefinition Width="Auto"/>
+                                                                    <ColumnDefinition Width="*"/>
+                                                                    <ColumnDefinition Width="Auto"/>
+                                                                </Grid.ColumnDefinitions>
+                                                                
+                                                                <Path Grid.Column="0"
+                                                                      x:Name="ExpandArrow"
+                                                                      Data="M 0 0 L 4 4 L 8 0 Z"
+                                                                      Fill="{DynamicResource Brush600}"
+                                                                      HorizontalAlignment="Center"
+                                                                      VerticalAlignment="Center"
+                                                                      Margin="0,0,6,0"
+                                                                      RenderTransformOrigin="0.5, 0.5">
+                                                                    <Path.RenderTransform>
+                                                                        <RotateTransform x:Name="ArrowRotation" Angle="0"/>
+                                                                    </Path.RenderTransform>
+                                                                </Path>
+                                                                
+                                                                <icons:MaterialIcon Grid.Column="1"
+                                                                                  Kind="FolderOutline" 
+                                                                                  Height="15" 
+                                                                                  Width="15" 
+                                                                                  Margin="0,0,6,0"
+                                                                                  Foreground="{DynamicResource Brush950}"
+                                                                                  x:Name="GroupIcon" />
+                                                                
+                                                                <TextBlock Grid.Column="2"
+                                                                         x:Name="GroupNameText"
+                                                                         FontWeight="SemiBold" 
+                                                                         FontSize="12"
+                                                                         Foreground="{DynamicResource Brush900}"
+                                                                         Text="{Binding Name}"
+                                                                         VerticalAlignment="Center" />
+                                                                
+                                                                <Border Grid.Column="3"
+                                                                       x:Name="CountPill"
+                                                                       Background="#dbeafe"
+                                                                       BorderBrush="{DynamicResource Brush300}"
+                                                                       BorderThickness="1"
+                                                                       CornerRadius="10"
+                                                                       Padding="6,2"
+                                                                       Margin="6,0,0,0"
+                                                                       VerticalAlignment="Center">
+                                                                    <TextBlock x:Name="GroupCountText"
+                                                                             Text="{Binding ItemCount}" 
+                                                                             FontSize="9.5"
+                                                                             FontWeight="SemiBold"
+                                                                             Foreground="#1e40af" />
+                                                                </Border>
+                                                            </Grid>
+                                                        </Border>
+                                                    </Grid>
+                                                </Expander.Header>
+                                                <Expander.Content>
+                                                    <ItemsPresenter Margin="0,2,0,4" />
+                                                </Expander.Content>
+                                            </Expander>
+                                            
+                                            <ItemsPresenter>
+                                                <ItemsPresenter.Style>
+                                                    <Style TargetType="ItemsPresenter">
+                                                        <Setter Property="Visibility" Value="Collapsed" />
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Name}" Value="{x:Null}">
+                                                                <Setter Property="Visibility" Value="Visible" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </ItemsPresenter.Style>
+                                            </ItemsPresenter>
+                                        </StackPanel>
+                                        <ControlTemplate.Triggers>
+                                            <!-- Hover -->
+                                            <Trigger SourceName="HeaderWrapper" Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="GroupHeaderBorder" Property="Background" Value="{DynamicResource Brush100}" />
+                                                <Setter TargetName="GroupHeaderBorder" Property="BorderBrush" Value="#60a5fa" />
+                                                <Setter TargetName="GroupHeaderBorder" Property="BorderThickness" Value="1" />
+                                                <Setter TargetName="GroupIcon" Property="Foreground" Value="#3b82f6" />
+                                                <Setter TargetName="GroupNameText" Property="Foreground" Value="#3b82f6" />
+                                                <Setter TargetName="ExpandArrow" Property="Fill" Value="#3b82f6" />
+                                                <Setter TargetName="CountPill" Property="Background" Value="#bfdbfe" />
+                                                <Setter TargetName="CountPill" Property="BorderBrush" Value="#60a5fa" />
+                                                <Setter TargetName="GroupCountText" Property="Foreground" Value="#1e40af" />
+                                                <Setter TargetName="GroupShadow" Property="Opacity" Value="0.18" />
+                                            </Trigger>
+                                            
+                                            <!-- Expand Animation -->
+                                            <Trigger SourceName="GroupExpander" Property="IsExpanded" Value="True">
+                                                <Trigger.EnterActions>
+                                                    <BeginStoryboard>
+                                                        <Storyboard>
+                                                            <DoubleAnimation Storyboard.TargetName="ArrowRotation"
+                                                                           Storyboard.TargetProperty="Angle"
+                                                                           To="180"
+                                                                           Duration="0:0:0.2">
+                                                                <DoubleAnimation.EasingFunction>
+                                                                    <CubicEase EasingMode="EaseOut"/>
+                                                                </DoubleAnimation.EasingFunction>
+                                                            </DoubleAnimation>
+                                                        </Storyboard>
+                                                    </BeginStoryboard>
+                                                </Trigger.EnterActions>
+                                                <Trigger.ExitActions>
+                                                    <BeginStoryboard>
+                                                        <Storyboard>
+                                                            <DoubleAnimation Storyboard.TargetName="ArrowRotation"
+                                                                           Storyboard.TargetProperty="Angle"
+                                                                           To="0"
+                                                                           Duration="0:0:0.2">
+                                                                <DoubleAnimation.EasingFunction>
+                                                                    <CubicEase EasingMode="EaseOut"/>
+                                                                </DoubleAnimation.EasingFunction>
+                                                            </DoubleAnimation>
+                                                        </Storyboard>
+                                                    </BeginStoryboard>
+                                                </Trigger.ExitActions>
+                                            </Trigger>
+
+                                            <!-- Drag Over -->
+                                            <Trigger SourceName="GroupHeaderBorder" Property="local:DrawableList.IsDragOver" Value="True">
+                                                <Setter TargetName="GroupHeaderBorder" Property="Background" Value="{DynamicResource Brush100}" />
+                                                <Setter TargetName="GroupHeaderBorder" Property="BorderBrush" Value="#60a5fa" />
+                                                <Setter TargetName="GroupHeaderBorder" Property="BorderThickness" Value="1" />
+                                                <Setter TargetName="GroupIcon" Property="Foreground" Value="#3b82f6" />
+                                                <Setter TargetName="GroupNameText" Property="Foreground" Value="#3b82f6" />
+                                                <Setter TargetName="ExpandArrow" Property="Fill" Value="#3b82f6" />
+                                                <Setter TargetName="CountPill" Property="Background" Value="#bfdbfe" />
+                                                <Setter TargetName="CountPill" Property="BorderBrush" Value="#60a5fa" />
+                                                <Setter TargetName="GroupCountText" Property="Foreground" Value="#1e40af" />
+                                                <Setter TargetName="GroupShadow" Property="Opacity" Value="0.22" />
+                                            </Trigger>
+                                            
+                                            <!-- Collapsed Group -->
+                                            <Trigger SourceName="GroupExpander" Property="IsExpanded" Value="False">
+                                                <Setter TargetName="GroupHeaderBorder" Property="Margin" Value="0,0,6,10" />
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </GroupStyle.ContainerStyle>
+                    <GroupStyle.Panel>
+                        <ItemsPanelTemplate>
+                            <VirtualizingStackPanel 
+                                IsVirtualizing="True" 
+                                VirtualizationMode="Recycling"
+                                IsVirtualizingWhenGrouping="True"
+                                CacheLength="10,10"
+                                CacheLengthUnit="Item"
+                                ScrollUnit="Pixel" />
+                        </ItemsPanelTemplate>
+                    </GroupStyle.Panel>
+                </GroupStyle>
+            </ListBox.GroupStyle>
+        </ListBox>
+    </AdornerDecorator>
+</UserControl>
