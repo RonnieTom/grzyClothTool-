@@ -176,4 +176,22 @@ public static class EnumHelper
             })
             .ToList();
     }
+
+    public static SexType ParseSexType(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return SexType.female;
+        }
+
+        var v = value.Trim();
+        if (v.Equals("male", StringComparison.OrdinalIgnoreCase)
+            || v.Equals("m", StringComparison.OrdinalIgnoreCase)
+            || v.Equals("男性", StringComparison.OrdinalIgnoreCase))
+        {
+            return SexType.male;
+        }
+
+        return SexType.female;
+    }
 }

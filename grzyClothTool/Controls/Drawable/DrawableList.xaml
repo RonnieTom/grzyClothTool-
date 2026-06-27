@@ -8,6 +8,7 @@
          xmlns:helpers="clr-namespace:grzyClothTool.Helpers"
          xmlns:converters="clr-namespace:grzyClothTool.Converters"
          xmlns:local="clr-namespace:grzyClothTool.Controls"
+         xmlns:grzy="clr-namespace:grzyClothTool"
          d:DataContext="{d:DesignInstance Type=models:AddonManagerDesign, IsDesignTimeCreatable=True}"
          x:Name="MyDrawableList"
          mc:Ignorable="d">
@@ -363,7 +364,7 @@
                                 <Setter TargetName="ShadowBorder" Property="Opacity" Value="0.08" />
                             </DataTrigger>
                             
-                            <DataTrigger Binding="{Binding SexName}" Value="female">
+                            <DataTrigger Binding="{Binding Sex}" Value="{x:Static grzy:Enums+SexType.female}">
                                 <Setter Property="Fill" Value="#f472b6" TargetName="GenderBar"/>
                             </DataTrigger>
                             

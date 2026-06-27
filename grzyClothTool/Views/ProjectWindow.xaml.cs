@@ -94,7 +94,7 @@ namespace grzyClothTool.Views
         private async void Add_DrawableFile(object sender, RoutedEventArgs e)
         {
             var btn = sender as CustomButton;
-            var sexBtn = btn.Label.ToString().Equals("male", StringComparison.CurrentCultureIgnoreCase) ? Enums.SexType.male : Enums.SexType.female;
+            var sexBtn = GetSexFromImportButton(btn);
             e.Handled = true;
 
             OpenFileDialog files = new()
@@ -119,7 +119,7 @@ namespace grzyClothTool.Views
         private async void Add_DrawableFolder(object sender, RoutedEventArgs e)
         {
             var btn = sender as CustomButton;
-            var sexBtn = btn.Tag.ToString().Equals("male", StringComparison.CurrentCultureIgnoreCase) ? Enums.SexType.male : Enums.SexType.female;
+            var sexBtn = GetSexFromImportButton(btn);
             e.Handled = true;
 
             OpenFolderDialog folder = new()
@@ -581,6 +581,17 @@ namespace grzyClothTool.Views
             }
 
             return null;
+        }
+
+        private static Enums.SexType GetSexFromImportButton(CustomButton btn)
+        {
+            var tag = btn?.Tag?.ToString();
+            if (!string.IsNullOrWhiteSpace(tag))
+            {
+                return EnumHelper.ParseSexType(tag);
+            }
+
+            return EnumHelper.ParseSexType(btn?.Label?.ToString());
         }
 
         #endregion

@@ -269,6 +269,7 @@ mc:Ignorable="d">
                     </Grid.ColumnDefinitions>
 
                     <c:CustomButton Grid.Column="0" 
+                                   Tag="FEMALE"
                                    Label="女性" 
                                    MyBtnClickEvent="Add_DrawableFile" 
                                    Padding="2,8" 
@@ -283,6 +284,7 @@ mc:Ignorable="d">
                     </c:CustomButton>
                     
                     <c:CustomButton Grid.Column="1" 
+                                   Tag="MALE"
                                    Label="男性" 
                                    MyBtnClickEvent="Add_DrawableFile" 
                                    Padding="2,8" 
